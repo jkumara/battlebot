@@ -2,6 +2,8 @@ const http = require('http')
 const R = require('ramda')
 const [port] = process.argv.slice(2)
 
+const playerName = 'Battlebot'
+
 const moveTypes = {
   MOVE: 'move',
   BOMB: 'bomb',
@@ -15,7 +17,7 @@ const nextMove = () => {
   return first === moveTypes.MOVE || second === moveTypes.MOVE ? moveTypes.BOMB : moveTypes.MOVE
 }
 
-const random = (min, max) => Math.floor(Math.random() * (max - min + 1) + min)
+const random = (min, max) => Math.floor(Math.random() * (max - min) + min)
 
 if (!port) {
   console.error('You didn\'t pass a port :(')
@@ -32,12 +34,35 @@ const whatNext = () => {
   return next
 }
 
-const move = () => {
-  return MOVE
+const move = (edgeLength, players, items) => {
+  const getBotCoords = R.dissoc('name')
+  const getPlayer = R.find(R.propEq('name', playerName))
+  const getTargets = R.reject(R.propEq('name', playerName))
+
+  const player = getPlayer(players)
+  const targets = getTargets(players)
+
+  const curLocation = getBotCoords(player)
+  const targetCoords = targets.map(getBotCoords)
+
+  console.log('My loc')
+  console.log(JSON.stringify(curLocation))
+
+  console.log('Enemy locs')
+  console.log(JSON.stringify(targetCoords))
+
+  const task = {
+    ...MOVE,
+    direction: "-X"
+  }
+
+  console.log(task)
+
+  return task
 }
 
 const bomb = () => {
-  return BOMB
+  return NOOP // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! change
 }
 
 const actionsPerTick = ({numOfTasksPerTick, edgeLength}, players, items) => {
@@ -48,7 +73,7 @@ const actionsPerTick = ({numOfTasksPerTick, edgeLength}, players, items) => {
 
     switch(m) {
       case moveTypes.MOVE:
-        retVal.push(move())
+        retVal.push(move(edgeLength, players, items))
         break
       case moveTypes.BOMB:
         retVal.push(bomb())
@@ -63,10 +88,6 @@ const actionsPerTick = ({numOfTasksPerTick, edgeLength}, players, items) => {
 }
 
 const playTurn = ({gameInfo, players, items}) => {
-  if (!gameInfo) {
-    return [NOOP]
-  }
-
   return actionsPerTick(gameInfo, players, items)
 }
 
@@ -84,7 +105,10 @@ http.createServer((req, res) => {
 
       console.log('we got next tick info', gameInfo)
       res.writeHead(200, {'Content-Type': 'application/json'})
-      res.end(JSON.stringify(playTurn(gameInfo)))
+
+      const task = JSON.stringify(playTurn(gameInfo))
+      console.log(task)
+      res.end(task)
     })
   }
 }).listen(port)
