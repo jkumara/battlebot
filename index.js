@@ -40,7 +40,7 @@ const bomb = () => {
   return BOMB
 }
 
-const actionsPerTick = ({numOfTasksPerTick}, players, items) => {
+const actionsPerTick = ({numOfTasksPerTick, edgeLength}, players, items) => {
   let retVal = []
 
   for(let i = 0; i < numOfTasksPerTick; ++i) {
