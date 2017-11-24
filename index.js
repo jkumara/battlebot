@@ -10,11 +10,11 @@ const moveTypes = {
   NOOP: 'noop'
 }
 
-let moves = [moveTypes.NOOP, moveTypes.NOOP]
+let moves = [moveTypes.MOVE, moveTypes.MOVE]
 
 const nextMove = () => {
   const [first, second] = moves.slice(-2)
-  return first !== moveTypes.BOMB && second !== moveTypes.BOMB ? moveTypes.BOMB : moveTypes.MOVE
+  return first === moveTypes.MOVE || second === moveTypes.MOVE ? moveTypes.BOMB : moveTypes.MOVE
 }
 
 const random = (min, max) => Math.floor(Math.random() * (max - min) + min)
@@ -99,26 +99,44 @@ const bomb = (edgeLength, blacklistCoordinates = []) => {
   return retVal
 }
 
-const actionsPerTick = ({numOfTasksPerTick, edgeLength}, players, items) => {
-  let retVal = []
+const actionsInTicks = numOfTasksPerTick => {
+  let moveActions = 0
+  let bombActions = 0
 
   for(let i = 0; i < numOfTasksPerTick; ++i) {
-    const m = whatNext()
-
-    switch(m) {
-      case moveTypes.MOVE:
-        retVal.push(move(edgeLength, players, items))
-        break
-      case moveTypes.BOMB:
-        retVal.push(bomb(edgeLength))
-        break
-      case moveTypes.NOOP:
-      default:
-        retVal.push(NOOP)
+    const next = whatNext()
+    console.log('next: ' + next)
+    if (next === 'bomb') {
+      ++bombActions
+    } else {
+      ++moveActions
     }
   }
 
+  return {
+    moveActions,
+    bombActions
+  }
+}
+
+const callNTimes = (n, fn) => {
+  let retVal = []
+  for (let i = 0; i < n; ++i) {
+    retVal.push(fn())
+  }
   return retVal
+}
+
+const actionsPerTick = ({numOfTasksPerTick, edgeLength}, players, items) => {
+  const actions = actionsInTicks(numOfTasksPerTick)
+  console.log(moves)
+  console.log(actions)
+  const actionMoves = callNTimes(actions.moveActions, () => move(edgeLength, players, items))
+  const actionBombs = callNTimes(actions.bombActions, () => bomb(edgeLength))
+  return R.concat(
+    actionMoves,
+    actionBombs
+  )
 }
 
 const playTurn = ({gameInfo, players, items}) => {
