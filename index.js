@@ -17,6 +17,9 @@ const nextMove = () => {
 
 const random = (min, max) => Math.floor(Math.random() * (max - min) + min)
 
+const coordinateEquals = ({x1, y1, z1}) => ({x2, y2, z2}) => x1 === x2 && y1 === y2 && z1 === z2
+
+
 if (!port) {
   console.error('You didn\'t pass a port :(')
   process.exit(1);
@@ -35,13 +38,17 @@ const move = () => {
   return MOVE
 }
 
-const bomb = edgeLength => {
-  return {
-    task: 'BOMB',
-    x: random(0, edgeLength - 1),
-    y: random(0, edgeLength - 1),
-    z: random(0, edgeLength - 1)
-  }
+const bomb = (edgeLength, blacklistCoordinates) => {
+  let retVal
+  do {
+    retVal = {
+      task: 'BOMB',
+      x: random(0, edgeLength - 1),
+      y: random(0, edgeLength - 1),
+      z: random(0, edgeLength - 1)
+    }
+  } while(R.any(coordinateEquals(retVal))(blacklistCoordinates))
+  return retVal
 }
 
 const actionsPerTick = ({numOfTasksPerTick, edgeLength}, players, items) => {
