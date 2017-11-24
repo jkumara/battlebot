@@ -2,7 +2,7 @@ const http = require('http')
 const R = require('ramda')
 const [port] = process.argv.slice(2)
 
-const playerName = 'Battlebot'
+const playerName = 'ForTheEmpire'
 
 const moveTypes = {
   MOVE: 'move',
