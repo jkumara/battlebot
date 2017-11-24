@@ -2,7 +2,7 @@ const http = require('http')
 const R = require('ramda')
 const [port] = process.argv.slice(2)
 
-const playerName = 'Battlebot'
+const playerName = 'ForTheEmpire'
 
 const moveTypes = {
   MOVE: 'move',
@@ -112,16 +112,18 @@ const move = (edgeLength, players, items) => {
   console.log('Safe moves')
   console.log(JSON.stringify(safeMoves))
 
+  if (safeMoves.length === 0) {
+    return NOOP
+  }
+
   const moveToCoord = safeMoves[random(0, safeMoves.length)]
   console.log('move', moveToCoord)
   const dir = getSafeDir(pos, moveToCoord)
 
-  const task = {
+  return {
     task: 'MOVE',
     direction: dir
   }
-
-  return task
 }
 
 const bomb = (edgeLength, blacklistCoordinates = []) => {
@@ -186,7 +188,6 @@ const actionsPerTick = ({numOfTasksPerTick, edgeLength}, players, items) => {
 const playTurn = ({gameInfo, players, items}) => {
   return actionsPerTick(gameInfo, players, items)
 }
-
 
 http.createServer((req, res) => {
   if (req.method === 'POST') {
