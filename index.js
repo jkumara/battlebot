@@ -14,7 +14,7 @@ let moves = [moveTypes.NOOP, moveTypes.NOOP]
 
 const nextMove = () => {
   const [first, second] = moves.slice(-2)
-  return first === moveTypes.MOVE || second === moveTypes.MOVE ? moveTypes.BOMB : moveTypes.MOVE
+  return first !== moveTypes.BOMB && second !== moveTypes.BOMB ? moveTypes.BOMB : moveTypes.MOVE
 }
 
 const random = (min, max) => Math.floor(Math.random() * (max - min) + min)
@@ -27,7 +27,6 @@ if (!port) {
 }
 
 const NOOP = {task: 'NOOP'}
-const MOVE = {task: 'MOVE'}
 
 const whatNext = () => {
   const next = nextMove()
@@ -78,7 +77,7 @@ const move = (edgeLength, players, items) => {
   console.log(JSON.stringify(possibleMoves))
 
   const task = {
-    ...MOVE,
+    task: 'MOVE',
     direction: "-X"
   }
 
@@ -87,7 +86,7 @@ const move = (edgeLength, players, items) => {
   return task
 }
 
-const bomb = (edgeLength, blacklistCoordinates) => {
+const bomb = (edgeLength, blacklistCoordinates = []) => {
   let retVal
   do {
     retVal = {
