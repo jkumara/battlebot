@@ -37,20 +37,45 @@ const whatNext = () => {
 
 const move = (edgeLength, players, items) => {
   const getBotCoords = R.dissoc('name')
+  const getItemCoords = R.dissoc('name')
   const getPlayer = R.find(R.propEq('name', playerName))
   const getTargets = R.reject(R.propEq('name', playerName))
 
   const player = getPlayer(players)
   const targets = getTargets(players)
 
-  const curLocation = getBotCoords(player)
+  const pos = getBotCoords(player)
   const targetCoords = targets.map(getBotCoords)
+  const itemCoords = items.map(getItemCoords)
+
+  const coordEquals = ({x, y, z}, {x2, y2, z2}) => x === x2 && y === y2 && z === z2
+
+  const isOutOfBounds = R.pipe(
+    R.values,
+    R.any(R.gt(edgeLength)),
+    R.any(R.lt(0))
+  )
 
   console.log('My loc')
-  console.log(JSON.stringify(curLocation))
+  console.log(JSON.stringify(pos))
 
-  console.log('Enemy locs')
-  console.log(JSON.stringify(targetCoords))
+  const neighbours = []
+
+  for (let axis of ['x', 'y', 'z']) {
+    for (let dir of [1, -1]) {
+      neighbours.push({
+        ...pos,
+        [axis]: pos[axis] + dir
+      })
+    }
+  }
+
+  const possibleMoves = R.pipe(
+    R.reject(isOutOfBounds)
+  )(neighbours)
+
+  console.log('Possible moves')
+  console.log(JSON.stringify(possibleMoves))
 
   const task = {
     ...MOVE,
