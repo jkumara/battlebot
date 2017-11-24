@@ -15,7 +15,7 @@ const nextMove = () => {
   return first === moveTypes.MOVE || second === moveTypes.MOVE ? moveTypes.BOMB : moveTypes.MOVE
 }
 
-const random = (min, max) => Math.floor(Math.random() * (max - min + 1) + min)
+const random = (min, max) => Math.floor(Math.random() * (max - min) + min)
 
 if (!port) {
   console.error('You didn\'t pass a port :(')
@@ -24,7 +24,6 @@ if (!port) {
 
 const NOOP = {task: 'NOOP'}
 const MOVE = {task: 'MOVE'}
-const BOMB = {task: 'BOMB'}
 
 const whatNext = () => {
   const next = nextMove()
@@ -36,8 +35,13 @@ const move = () => {
   return MOVE
 }
 
-const bomb = () => {
-  return BOMB
+const bomb = edgeLength => {
+  return {
+    task: 'BOMB',
+    x: random(0, edgeLength - 1),
+    y: random(0, edgeLength - 1),
+    z: random(0, edgeLength - 1)
+  }
 }
 
 const actionsPerTick = ({numOfTasksPerTick, edgeLength}, players, items) => {
@@ -51,7 +55,7 @@ const actionsPerTick = ({numOfTasksPerTick, edgeLength}, players, items) => {
         retVal.push(move())
         break
       case moveTypes.BOMB:
-        retVal.push(bomb())
+        retVal.push(bomb(edgeLength))
         break
       case moveTypes.NOOP:
       default:
