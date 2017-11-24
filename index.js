@@ -52,7 +52,7 @@ const move = (edgeLength, players, items) => {
   console.log(JSON.stringify(targetCoords))
 
   const task = {
-    ...MOVE,
+    task: 'MOVE',
     direction: "-X"
   }
 
