@@ -35,6 +35,27 @@ const whatNext = () => {
 }
 
 const move = (edgeLength, players, items) => {
+
+  const getSafeDir = ({x, y, z}, {x: x2, y: y2, z: z2}) => {
+    const xDir = x - x2
+    const yDir = y - y2
+    const zDir = z - z2
+
+    console.log('what:', x2, y2, z2)
+
+    if (xDir !== 0) {
+      return xDir > 0 ? '-X' : '+X'
+    }
+
+    if (yDir !== 0) {
+      return yDir > 0 ? '-Y' : '+Y'
+    }
+
+    if (zDir !== 0) {
+      return zDir > 0 ? '-Z' : '+Z'
+    }
+  }
+
   const getBotCoords = R.dissoc('name')
   const getItemCoords = R.dissoc('name')
   const getPlayer = R.find(R.propEq('name', playerName))
@@ -46,13 +67,22 @@ const move = (edgeLength, players, items) => {
   const pos = getBotCoords(player)
   const targetCoords = targets.map(getBotCoords)
   const itemCoords = items.map(getItemCoords)
+  const dangerCoords = [].concat(targetCoords, itemCoords)
 
-  const coordEquals = ({x, y, z}, {x2, y2, z2}) => x === x2 && y === y2 && z === z2
+  console.log('edge', parseInt(edgeLength))
 
-  const isOutOfBounds = R.pipe(
+  const isBelowBounds = R.pipe(
     R.values,
-    R.any(R.gt(edgeLength)),
-    R.any(R.lt(0))
+    R.tap(x => console.log('lol', x)),
+    R.any(R.lt(edgeLength - 1)),
+    R.tap(x => console.log('->', x))
+  )
+
+  const isAboveBounds = R.pipe(
+    R.values,
+    R.tap(x => console.log('lol', x)),
+    R.any(R.gt(0 + 1)),
+    R.tap(x => console.log('->', x))
   )
 
   console.log('My loc')
@@ -69,19 +99,27 @@ const move = (edgeLength, players, items) => {
     }
   }
 
+  console.log(neighbours)
+
   const possibleMoves = R.pipe(
-    R.reject(isOutOfBounds)
+    R.reject(isBelowBounds),
+    R.reject(isAboveBounds)
   )(neighbours)
 
-  console.log('Possible moves')
-  console.log(JSON.stringify(possibleMoves))
+  console.log(possibleMoves)
+  const safeMoves = R.difference(possibleMoves, dangerCoords)
+
+  console.log('Safe moves')
+  console.log(JSON.stringify(safeMoves))
+
+  const moveToCoord = safeMoves[random(0, safeMoves.length)]
+  console.log('move', moveToCoord)
+  const dir = getSafeDir(pos, moveToCoord)
 
   const task = {
     task: 'MOVE',
-    direction: "-X"
+    direction: dir
   }
-
-  console.log(task)
 
   return task
 }
@@ -136,8 +174,6 @@ http.createServer((req, res) => {
 
     req.on('end', () => {
       const gameInfo = JSON.parse(jsonString)
-
-      console.log('we got next tick info', gameInfo)
       res.writeHead(200, {'Content-Type': 'application/json'})
 
       const task = JSON.stringify(playTurn(gameInfo))
