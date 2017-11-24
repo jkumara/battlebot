@@ -87,6 +87,8 @@ const move = (edgeLength, players, items) => {
 }
 
 const bomb = (edgeLength, blacklistCoordinates = []) => {
+  console.log('blacklist')
+  console.log(blacklistCoordinates)
   let retVal
   do {
     retVal = {
@@ -102,20 +104,24 @@ const bomb = (edgeLength, blacklistCoordinates = []) => {
 const actionsInTicks = numOfTasksPerTick => {
   let moveActions = 0
   let bombActions = 0
+  let noopActions = 0
 
   for(let i = 0; i < numOfTasksPerTick; ++i) {
     const next = whatNext()
     console.log('next: ' + next)
     if (next === 'bomb') {
       ++bombActions
-    } else {
+    } else if (next === 'move') {
       ++moveActions
+    } else {
+      ++noopActions
     }
   }
 
   return {
     moveActions,
-    bombActions
+    bombActions,
+    noopActions
   }
 }
 
@@ -129,13 +135,13 @@ const callNTimes = (n, fn) => {
 
 const actionsPerTick = ({numOfTasksPerTick, edgeLength}, players, items) => {
   const actions = actionsInTicks(numOfTasksPerTick)
-  console.log(moves)
-  console.log(actions)
   const actionMoves = callNTimes(actions.moveActions, () => move(edgeLength, players, items))
   const actionBombs = callNTimes(actions.bombActions, () => bomb(edgeLength))
+  const actionNoops = callNTimes(actions.noopActions, () => ({task: 'NOOP'}))
   return R.concat(
     actionMoves,
-    actionBombs
+    actionBombs,
+    actionNoops
   )
 }
 
