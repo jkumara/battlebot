@@ -1,6 +1,7 @@
-const express = require('express')
-const app = express()
+const http = require('http')
 const [port] = process.argv.slice(2)
+
+const random = (min, max) => Math.floor(Math.random() * (max - min + 1) + min)
 
 if (!port) {
   console.error('You didn\'t pass a port :(')
@@ -10,14 +11,30 @@ if (!port) {
 const NOOP = {task: 'NOOP'}
 
 const playTurn = ({gameInfo, players, items}) => {
+  if (!gameInfo) {
+    return [NOOP]
+  }
+
   return Array(gameInfo.numOfTasksPerTick).fill(NOOP)
 }
 
-app.use(express.json())
 
-app.post('/', (req, res) => {
-  const gameInfo = req.body
-  res.json(playTurn(gameInfo))
-})
+http.createServer((req, res) => {
+  if (req.method === 'POST') {
+    let jsonString = '';
 
-app.listen(port, '0.0.0.0', () => console.log('Battlebot listening on port ' + port))
+    req.on('data', (data) => {
+      jsonString += data
+    })
+
+    req.on('end', () => {
+      const gameInfo = JSON.parse(jsonString)
+
+      console.log('we got next tick info', gameInfo)
+      res.writeHead(200, {'Content-Type': 'application/json'})
+      res.end(JSON.stringify(playTurn(gameInfo)))
+    })
+  }
+}).listen(port)
+
+console.log('Battlebot listening on port ' + port)
