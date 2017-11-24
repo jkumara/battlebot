@@ -8,13 +8,12 @@ const moveTypes = {
   NOOP: 'noop'
 }
 
-let moves = []
-const nextMove = () => R.pipe(
-  R.takeLast(2, moves),
-  ([first, second]) => {
-    return first === moveTypes.MOVE || second === moveTypes.MOVE ? moveTypes.BOMB : moveTypes.MOVE
-  }
-)(moves)
+let moves = [moveTypes.NOOP, moveTypes.NOOP]
+
+const nextMove = () => {
+  const [first, second] = moves.slice(-2)
+  return first === moveTypes.MOVE || second === moveTypes.MOVE ? moveTypes.BOMB : moveTypes.MOVE
+}
 
 const random = (min, max) => Math.floor(Math.random() * (max - min + 1) + min)
 
@@ -28,9 +27,9 @@ const MOVE = {task: 'MOVE'}
 const BOMB = {task: 'BOMB'}
 
 const whatNext = () => {
-  const nextMove = nextMove()
-  moves.push(nextMove)
-  return nextMove
+  const next = nextMove()
+  moves.push(next)
+  return next
 }
 
 const move = () => {
@@ -43,15 +42,17 @@ const bomb = () => {
 
 const actionsPerTick = ({numOfTasksPerTick}, players, items) => {
   let retVal = []
+
   for(let i = 0; i < numOfTasksPerTick; ++i) {
-    const move = whatNext()
-    switch(move) {
+    const m = whatNext()
+
+    switch(m) {
       case moveTypes.MOVE:
         retVal.push(move())
-        break:
+        break
       case moveTypes.BOMB:
         retVal.push(bomb())
-        break:
+        break
       case moveTypes.NOOP:
       default:
         retVal.push(NOOP)
